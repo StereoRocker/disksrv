@@ -1,0 +1,167 @@
+PROTOCOL.TXT
+Defines the protocol used to communicate with DISKSRV - port 6000
+
+#############
+# CHANGELOG #
+#############
+
+v1.0 - Initial release
+
+####################
+# PACKET STRUCTURE #
+####################
+
+The structure of a request and response packet, are actually identical.
+The only difference, is the meaning of the first byte.
+
+The first byte, for a request, is the command number. For a response, this
+is the returned status for the request.
+
+typedef struct {
+	uint16_t  reqstat;		// Request number, or response status
+	uint16_t datalen;
+	uint8_t  data[];
+} packet_t;
+
+######################
+# INITIAL CONNECTION #
+######################
+
+Upon initial connection, the server will send 4 bytes.
+
+The first two are a magic number, 0x64 0x73 ('DS' in hex).
+The third byte signifies the major version of the program, and the fourth
+signifies the minor version. Minor revisions will be protocol-compatible.
+Major revisions may not be.
+
+#######
+# CHS #
+#######
+
+The CHS datatype is used often in requests/responses. It is defined as 4
+bytes. The first byte is the number of sectors per track. The second byte
+is the number of sides. The next 2 bytes are a 16bit integer, sent in
+network byte order, signifying the number of tracks.
+
+Note: Number of (sectors/sides/tracks) can be interchanged for the desired
+(sector/side/track) value, in the case of reading/writing to a disk.
+
+The BIOS expects side and track to be indexed from 0, and sector to be
+indexed from 1.
+
+#############
+# RESPONSES #
+#############
+
+reqstat = 0 for failure, or 1 for success. All other values are reserved.
+
+############
+# REQUESTS #
+############
+
+There are currently 7 requests defined, their codes and functionality are as below.
+
+################
+# REQ 0 - QUIT #
+################
+
+This request should contain no data, and should be sent before closing the
+TCP connection. The server will then allow another connection. The server
+will not send a response packet to this, and is the only request to do so.
+
+##########################
+# REQ 1 - GET DISK COUNT #
+##########################
+
+This request should contain no data. The response should be 2 bytes in
+length. The first byte is equal to the number of floppy disks present, and
+the second byte is equal to the number of hard disks present.
+
+##############################
+# REQ 2 - GET HARD DISK INFO #
+##############################
+
+This request should contain 1 byte of data. This byte is equal to the drive
+number that is to be queried for information. The drive number should be
+indexed from 0, and should be less than the value returned from REQ 1.
+
+The response will be 4 bytes, containing a CHS datatype.
+The values returned in the CHS will be total counts.
+
+############################
+# REQ 3 - READ DISK SECTOR #
+############################
+
+This request should contain 5 bytes of data. The first should contain the
+disk number. The next 4 should contain a CHS struct.
+
+The disk number should be 0x00 for the 1st floppy, 0x01 for the 2nd floppy,
+0x80 for the 1st hard drive, 0x81 for the 2nd hard drive...
+This is the value that will be passed to the BIOS.
+
+The response will be 512 bytes, if successful, containing the sector data
+requested.
+
+There is nothing in the protocol to stop you from trying to read beyond
+the length of whatever disk drive is installed. If the BIOS fails reading,
+however, this command will fail as well.
+
+#############################
+# REQ 4 - WRITE DISK SECTOR #
+#############################
+
+This request should contain 517 bytes of data. The first should contain the
+disk number. The next 4 should contain a CHS struct. The next 512 bytes
+will be the bytes to write to the sector.
+
+The disk number should be 0x00 for the 1st floppy, 0x01 for the 2nd floppy,
+0x80 for the 1st hard drive, 0x81 for the 2nd hard drive...
+This is the value that will be passed to the BIOS.
+
+The response will contain no data.
+
+There is nothing in the protocol to stop you from trying to write beyond
+the length of whatever disk drive is installed. If the BIOS fails writing,
+however, this command will fail as well.
+
+####################################
+# REQ 5 - GET MAX DISK BUFFER SIZE #
+####################################
+
+This request should contain no data. The response should be 2 bytes,
+interpreted as a 16 bit integer, sent in network byte order.
+
+The response is equal to the maximum size of the disk buffer, and is the
+largest number of bytes that may be read/written to/from a drive
+using the READ/WRITE MULTIPLE DISK SECTORS commands.
+
+Divide this number by 512 to obtain the maximum number of sectors you may
+request.
+
+######################################
+# REQ 6 - READ MULTIPLE DISK SECTORS #
+######################################
+
+This request should contain 6 bytes of data. The first should contain the
+disk number. The next 4 should contain a CHS struct. The last byte should
+contain the number of sectors to be read.
+
+The response will be (sector count * 512 bytes), containing the sector data
+requested.
+
+There is nothing in the protocol to stop you from trying to read beyond
+the length of whatever disk drive is installed. If the BIOS fails reading,
+however, this command will fail as well.
+
+#######################################
+# REQ 7 - WRITE MULTIPLE DISK SECTORS #
+#######################################
+
+This request should contain 6 + (sector count * 512) bytes of data. The
+first should contain the disk number. The next 4 should contain a CHS
+struct. The next byte is equal to the number of sectors to be written. The
+next (sector count * 512) bytes will be the bytes to write to the sectors.
+
+There is nothing in the protocol to stop you from trying to write beyond
+the length of whatever disk drive is installed. If the BIOS fails writing,
+however, this command will fail as well.

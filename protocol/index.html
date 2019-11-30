@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>Network protocol - disksrv</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">disksrv</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../server/">Server</a>
+                            </li>
+                            <li >
+                                <a href="../client/">Client</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Technical <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li class="active">
+    <a href="./">Network protocol</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../client/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="disabled">
+                                <a rel="prev" >
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#network-protocol">Network protocol</a></li>
+            <li><a href="#changelog">Changelog</a></li>
+            <li><a href="#packet-structure">Packet structure</a></li>
+            <li><a href="#initial-connection">Initial connection</a></li>
+            <li><a href="#chs-datatype">CHS datatype</a></li>
+            <li><a href="#responses">Responses</a></li>
+            <li><a href="#requests">Requests</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="network-protocol">Network protocol</h1>
+<h2 id="changelog">Changelog</h2>
+<ul>
+<li>v1.0 - Initial release</li>
+</ul>
+<h2 id="packet-structure">Packet structure</h2>
+<p>This protocol works on a system of requests and responses. The client will send a request to the server, with an amount of data. The server will then send a response to the client, with an amount of data.</p>
+<p>The structure of a request and response packet, are actually identical.
+The only difference, is the meaning of the first byte.</p>
+<p>The first byte, for a request, is the command number. For a response, this
+is the returned status for the request.</p>
+<pre><code>typedef struct {
+    uint8_t  reqstat;       // Request number, or response status
+    uint16_t datalen;       // Length of the data being sent with this request/response
+    uint8_t  data[];
+} packet_t;
+</code></pre>
+
+<h2 id="initial-connection">Initial connection</h2>
+<p>Upon initial connection, the server will send 4 bytes.</p>
+<p>The first two are a magic number, 0x64 0x73 ('DS' in hex).
+The third byte signifies the major version of the program, and the fourth
+signifies the minor version. Minor revisions will be protocol-compatible.
+Major revisions may not be.</p>
+<h2 id="chs-datatype">CHS datatype</h2>
+<p>The CHS datatype is used often in requests/responses. It is defined as 4
+bytes. The first byte is the number of sectors per track. The second byte
+is the number of sides. The next 2 bytes are a 16bit integer, sent in
+network byte order, signifying the number of tracks.</p>
+<p>Note: Number of (sectors/sides/tracks) can be interchanged for the desired
+(sector/side/track) value, in the case of reading/writing to a disk.</p>
+<p>The BIOS expects side and track to be indexed from 0, and sector to be
+indexed from 1.</p>
+<h2 id="responses">Responses</h2>
+<p>reqstat = 0 for failure, or 1 for success. All other values are reserved.</p>
+<h2 id="requests">Requests</h2>
+<p>There are currently 7 requests defined, their codes and functionality are as below.</p>
+<h3 id="req-0-quit">REQ 0 - QUIT</h3>
+<p>This request should contain no data, and should be sent before closing the
+TCP connection. The server will then allow another connection. The server
+will not send a response packet to this, and is the only request to do so.</p>
+<h3 id="req-1-get-disk-count">REQ 1 - GET DISK COUNT</h3>
+<p>This request should contain no data. The response should be 2 bytes in
+length. The first byte is equal to the number of floppy disks present, and
+the second byte is equal to the number of hard disks present.</p>
+<h3 id="req-2-get-hard-disk-info">REQ 2 - GET HARD DISK INFO</h3>
+<p>This request should contain 1 byte of data. This byte is equal to the drive
+number that is to be queried for information. The drive number should be
+indexed from 0, and should be less than the value returned from REQ 1.</p>
+<p>The response will be 4 bytes, containing a CHS datatype.
+The values returned in the CHS will be total counts.</p>
+<h3 id="req-3-read-disk-sector">REQ 3 - READ DISK SECTOR</h3>
+<p>This request should contain 5 bytes of data. The first should contain the
+disk number. The next 4 should contain a CHS struct.</p>
+<p>The disk number should be 0x00 for the 1st floppy, 0x01 for the 2nd floppy,
+0x80 for the 1st hard drive, 0x81 for the 2nd hard drive...
+This is the value that will be passed to the BIOS.</p>
+<p>The response will be 512 bytes, if successful, containing the sector data
+requested.</p>
+<p>There is nothing in the protocol to stop you from trying to read beyond
+the length of whatever disk drive is installed. If the BIOS fails reading,
+however, this command will fail as well.</p>
+<h3 id="req-4-write-disk-sector">REQ 4 - WRITE DISK SECTOR</h3>
+<p>This request should contain 517 bytes of data. The first should contain the
+disk number. The next 4 should contain a CHS struct. The next 512 bytes
+will be the bytes to write to the sector.</p>
+<p>The disk number should be 0x00 for the 1st floppy, 0x01 for the 2nd floppy,
+0x80 for the 1st hard drive, 0x81 for the 2nd hard drive...
+This is the value that will be passed to the BIOS.</p>
+<p>The response will contain no data.</p>
+<p>There is nothing in the protocol to stop you from trying to write beyond
+the length of whatever disk drive is installed. If the BIOS fails writing,
+however, this command will fail as well.</p>
+<h3 id="req-5-get-max-disk-buffer-size">REQ 5 - GET MAX DISK BUFFER SIZE</h3>
+<p>This request should contain no data. The response should be 2 bytes,
+interpreted as a 16 bit integer, sent in network byte order.</p>
+<p>The response is equal to the maximum size of the disk buffer, and is the
+largest number of bytes that may be read/written to/from a drive
+using the READ/WRITE MULTIPLE DISK SECTORS commands.</p>
+<p>Divide this number by 512 to obtain the maximum number of sectors you may
+request.</p>
+<h3 id="req-6-read-multiple-disk-sectors">REQ 6 - READ MULTIPLE DISK SECTORS</h3>
+<p>This request should contain 6 bytes of data. The first should contain the
+disk number. The next 4 should contain a CHS struct. The last byte should
+contain the number of sectors to be read.</p>
+<p>The response will be (sector count * 512 bytes), containing the sector data
+requested.</p>
+<p>There is nothing in the protocol to stop you from trying to read beyond
+the length of whatever disk drive is installed. If the BIOS fails reading,
+however, this command will fail as well.</p>
+<h3 id="req-7-write-multiple-disk-sectors">REQ 7 - WRITE MULTIPLE DISK SECTORS</h3>
+<p>This request should contain 6 + (sector count * 512) bytes of data. The
+first should contain the disk number. The next 4 should contain a CHS
+struct. The next byte is equal to the number of sectors to be written. The
+next (sector count * 512) bytes will be the bytes to write to the sectors.</p>
+<p>There is nothing in the protocol to stop you from trying to write beyond
+the length of whatever disk drive is installed. If the BIOS fails writing,
+however, this command will fail as well.</p></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
