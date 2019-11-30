@@ -1,6 +1,9 @@
 # Documentation for disksrv
 
-Please see the [GitHub repository](https://github.com/StereoRocker/disksrv/).
+disksrv is a suite of tools, to read & write hard/floppy disks on a DOS machine, over a TCP/IP based network.
+Its intended use case is to manage storage media for these machines, without the need to purchase additional hardware to read/write these storage mediums.
+
+Please see the [GitHub repository](https://github.com/StereoRocker/disksrv/) for source code and downloads.
 
 ## Getting started
 

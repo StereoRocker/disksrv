@@ -2,7 +2,7 @@
 
 ## Requirements
 
-* A .Net 4.0 compatible environment, capable of running winforms
+* A .Net 4.0 environment, capable of running WinForms based programs. This should include recent installations of Mono.
 * A TCP/IP network
 * Network access to the disksrv host.
 
