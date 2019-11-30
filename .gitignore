@@ -1,5 +1,9 @@
 # Ignore executables
-.exe
+*.exe
 
 # Ignore obj files
-.o
+*.o
+
+# Ignore bin and obj directories in client/
+client/bin/
+client/obj/
