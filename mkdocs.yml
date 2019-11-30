@@ -1,0 +1,7 @@
+site_name: disksrv
+nav:
+- Home: 'index.md'
+- Server: 'server.md'
+- Client: 'client.md'
+- Technical:
+  - Network protocol: 'protocol.md'
