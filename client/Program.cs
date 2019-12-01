@@ -13,6 +13,10 @@ namespace disksrv_client
         [STAThread]
         static void Main()
         {
+            // Initialize application settings
+            AppSettings.Initialize();
+
+            // This launches frmMain
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new frmMain());

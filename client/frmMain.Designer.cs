@@ -49,12 +49,21 @@
             this.statProg = new System.Windows.Forms.ToolStripProgressBar();
             this.workerReadDisk = new System.ComponentModel.BackgroundWorker();
             this.workerWriteDisk = new System.ComponentModel.BackgroundWorker();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.quitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.preferencesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.aboutDisksrvClientToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.onlineDocumentationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.panelLayout.SuspendLayout();
             this.grpLocalFile.SuspendLayout();
             this.grpServer.SuspendLayout();
             this.grpDrives.SuspendLayout();
             this.grpActions.SuspendLayout();
             this.menuStatus.SuspendLayout();
+            this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // panelLayout
@@ -63,19 +72,19 @@
             this.panelLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.panelLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.panelLayout.Controls.Add(this.grpLocalFile, 0, 1);
-            this.panelLayout.Controls.Add(this.grpServer, 0, 0);
             this.panelLayout.Controls.Add(this.grpDrives, 0, 2);
             this.panelLayout.Controls.Add(this.grpActions, 1, 2);
             this.panelLayout.Controls.Add(this.menuStatus, 0, 3);
+            this.panelLayout.Controls.Add(this.grpServer, 0, 0);
             this.panelLayout.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panelLayout.Location = new System.Drawing.Point(0, 0);
+            this.panelLayout.Location = new System.Drawing.Point(0, 24);
             this.panelLayout.Name = "panelLayout";
             this.panelLayout.RowCount = 4;
             this.panelLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.panelLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.panelLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.panelLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.panelLayout.Size = new System.Drawing.Size(434, 286);
+            this.panelLayout.Size = new System.Drawing.Size(434, 262);
             this.panelLayout.TabIndex = 2;
             // 
             // grpLocalFile
@@ -138,6 +147,7 @@
             this.txtHost.Name = "txtHost";
             this.txtHost.Size = new System.Drawing.Size(254, 20);
             this.txtHost.TabIndex = 0;
+            this.txtHost.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtHost_KeyDown);
             // 
             // cmdConnect
             // 
@@ -170,7 +180,7 @@
             this.grpDrives.Dock = System.Windows.Forms.DockStyle.Fill;
             this.grpDrives.Location = new System.Drawing.Point(3, 115);
             this.grpDrives.Name = "grpDrives";
-            this.grpDrives.Size = new System.Drawing.Size(211, 148);
+            this.grpDrives.Size = new System.Drawing.Size(211, 124);
             this.grpDrives.TabIndex = 6;
             this.grpDrives.TabStop = false;
             this.grpDrives.Text = "Disk select";
@@ -179,8 +189,9 @@
             // 
             this.cmbFloppyType.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmbFloppyType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbFloppyType.FormattingEnabled = true;
-            this.cmbFloppyType.Location = new System.Drawing.Point(3, 118);
+            this.cmbFloppyType.Location = new System.Drawing.Point(3, 94);
             this.cmbFloppyType.Name = "cmbFloppyType";
             this.cmbFloppyType.Size = new System.Drawing.Size(202, 21);
             this.cmbFloppyType.TabIndex = 2;
@@ -189,7 +200,7 @@
             // 
             this.lblFloppyType.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.lblFloppyType.AutoSize = true;
-            this.lblFloppyType.Location = new System.Drawing.Point(9, 101);
+            this.lblFloppyType.Location = new System.Drawing.Point(9, 77);
             this.lblFloppyType.Name = "lblFloppyType";
             this.lblFloppyType.Size = new System.Drawing.Size(61, 13);
             this.lblFloppyType.TabIndex = 1;
@@ -204,7 +215,7 @@
             this.lstServerDisks.Location = new System.Drawing.Point(3, 16);
             this.lstServerDisks.Name = "lstServerDisks";
             this.lstServerDisks.ScrollAlwaysVisible = true;
-            this.lstServerDisks.Size = new System.Drawing.Size(205, 82);
+            this.lstServerDisks.Size = new System.Drawing.Size(205, 56);
             this.lstServerDisks.TabIndex = 0;
             // 
             // grpActions
@@ -215,7 +226,7 @@
             this.grpActions.Dock = System.Windows.Forms.DockStyle.Fill;
             this.grpActions.Location = new System.Drawing.Point(220, 115);
             this.grpActions.Name = "grpActions";
-            this.grpActions.Size = new System.Drawing.Size(211, 148);
+            this.grpActions.Size = new System.Drawing.Size(211, 124);
             this.grpActions.TabIndex = 7;
             this.grpActions.TabStop = false;
             this.grpActions.Text = "Actions";
@@ -263,7 +274,7 @@
             this.menuStatus.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statLabel,
             this.statProg});
-            this.menuStatus.Location = new System.Drawing.Point(0, 266);
+            this.menuStatus.Location = new System.Drawing.Point(0, 242);
             this.menuStatus.Name = "menuStatus";
             this.menuStatus.Size = new System.Drawing.Size(434, 20);
             this.menuStatus.TabIndex = 8;
@@ -300,12 +311,78 @@
             this.workerWriteDisk.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.workerWriteDisk_ProgressChanged);
             this.workerWriteDisk.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.workerWriteDisk_RunWorkerCompleted);
             // 
+            // menuStrip1
+            // 
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fileToolStripMenuItem,
+            this.editToolStripMenuItem,
+            this.helpToolStripMenuItem});
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(434, 24);
+            this.menuStrip1.TabIndex = 3;
+            this.menuStrip1.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.quitToolStripMenuItem});
+            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.fileToolStripMenuItem.Text = "File";
+            // 
+            // quitToolStripMenuItem
+            // 
+            this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
+            this.quitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.quitToolStripMenuItem.Text = "Quit";
+            this.quitToolStripMenuItem.Click += new System.EventHandler(this.quitToolStripMenuItem_Click);
+            // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.preferencesToolStripMenuItem});
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Text = "Edit";
+            // 
+            // preferencesToolStripMenuItem
+            // 
+            this.preferencesToolStripMenuItem.Name = "preferencesToolStripMenuItem";
+            this.preferencesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.preferencesToolStripMenuItem.Text = "Preferences";
+            this.preferencesToolStripMenuItem.Click += new System.EventHandler(this.preferencesToolStripMenuItem_Click);
+            // 
+            // helpToolStripMenuItem
+            // 
+            this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aboutDisksrvClientToolStripMenuItem,
+            this.onlineDocumentationToolStripMenuItem});
+            this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.helpToolStripMenuItem.Text = "Help";
+            // 
+            // aboutDisksrvClientToolStripMenuItem
+            // 
+            this.aboutDisksrvClientToolStripMenuItem.Name = "aboutDisksrvClientToolStripMenuItem";
+            this.aboutDisksrvClientToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.aboutDisksrvClientToolStripMenuItem.Text = "About disksrv client";
+            this.aboutDisksrvClientToolStripMenuItem.Click += new System.EventHandler(this.aboutDisksrvClientToolStripMenuItem_Click);
+            // 
+            // onlineDocumentationToolStripMenuItem
+            // 
+            this.onlineDocumentationToolStripMenuItem.Name = "onlineDocumentationToolStripMenuItem";
+            this.onlineDocumentationToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.onlineDocumentationToolStripMenuItem.Text = "Online documentation";
+            this.onlineDocumentationToolStripMenuItem.Click += new System.EventHandler(this.onlineDocumentationToolStripMenuItem_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(434, 286);
             this.Controls.Add(this.panelLayout);
+            this.Controls.Add(this.menuStrip1);
             this.MinimumSize = new System.Drawing.Size(360, 300);
             this.Name = "frmMain";
             this.Text = "disksrv client";
@@ -322,7 +399,10 @@
             this.grpActions.ResumeLayout(false);
             this.menuStatus.ResumeLayout(false);
             this.menuStatus.PerformLayout();
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -349,6 +429,14 @@
         private System.ComponentModel.BackgroundWorker workerWriteDisk;
         private System.Windows.Forms.ComboBox cmbFloppyType;
         private System.Windows.Forms.Label lblFloppyType;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem editToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem preferencesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem aboutDisksrvClientToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem onlineDocumentationToolStripMenuItem;
     }
 }
 

@@ -18,31 +18,16 @@ namespace disksrv_client
 {
     public partial class frmMain : Form
     {
+
         #region Global variables/constants/structures
+
         private const int PORT = 6000;
         private static byte[] ID = { 0x64, 0x73 };
-
-        struct chs_t
-        {
-            public int cylinder;
-            public byte head;
-            public byte sector;
-
-            public chs_t(int c, byte h, byte s)
-            {
-                cylinder = c;
-                head = h;
-                sector = s;
-            }
-        };
-
-        // Some floppy CHS constant(s)
-        chs_t F144_35 = new chs_t(80, 2, 18);       // 3.5" 1.44MB
-        chs_t F720_35 = new chs_t(80, 2, 9);        // 3.5" 720KB
 
         #endregion
 
         #region Convenience methods
+
         private void UpdateUI()
         {
             //MessageBox.Show("UpdateUI fired");
@@ -144,6 +129,26 @@ namespace disksrv_client
                 lstServerDisks.Items.Add(String.Format("HDD {0}", i));
         }
 
+        private void PopulateGeometries()
+        {
+            Debug.WriteLine("PopulateGeometries: Fired, {0} items to populate", AppSettings.floppy_geometries.Count);
+
+            // Clear the combo box
+            cmbFloppyType.Items.Clear();
+
+            // Add the friendly name of each geometry
+            foreach (KeyValuePair<string, chs_t> kvp in AppSettings.floppy_geometries)
+            {
+                cmbFloppyType.Items.Add(kvp.Key);
+            }
+
+            // Select the first item by default (if settings.xml is unmodified, this is '3.5" 1.44MB'), if there are any items
+            if (cmbFloppyType.Items.Count > 0)
+            {
+                cmbFloppyType.SelectedIndex = 0;
+            }
+        }
+
         // This returns the BIOS number for the selected disk, or -1 if no disk is selected
         private int GetSelectedDisk()
         {
@@ -191,9 +196,17 @@ namespace disksrv_client
             // Return diskno
             return diskno;
         }
+
+        // This returns a chs_t representing the chosen floppy geometry. It is required that the calling function asserts a geometry has been selected, else a runtime exception will go uncaught.
+        private chs_t GetSelectedGeometry()
+        {
+            return AppSettings.floppy_geometries[(string)cmbFloppyType.SelectedItem];
+        }
+
         #endregion // Convenience methods
 
         #region Application logic
+
         private struct AppState {
             // Status variables
             public bool connected;
@@ -447,7 +460,7 @@ namespace disksrv_client
 
             // Obtain the maximum disk buffer size
             int maxbuf = GetDiskBufSize();
-            if (state.maxbufoverride != 0)
+            if ((state.maxbufoverride != 0) && (state.maxbufoverride <= maxbuf))
                 maxbuf = state.maxbufoverride;
 
             byte[] packetbuf = new byte[4];
@@ -577,7 +590,7 @@ namespace disksrv_client
 
             // Obtain the maximum disk buffer size
             int maxbuf = GetDiskBufSize();
-            if (state.maxbufoverride != 0)
+            if ((state.maxbufoverride != 0) && (state.maxbufoverride <= maxbuf))
                 maxbuf = state.maxbufoverride;
 
             byte[] packetbuf = new byte[4];
@@ -695,17 +708,15 @@ namespace disksrv_client
 
         #endregion // Application logic
 
-        
-
         #region UI Event handlers
-
 
         private void frmMain_Shown(object sender, EventArgs e)
         {
             // Update UI
             UpdateUI();
 
-            // TODO: Read floppy disk types and CHS values from a JSON file
+            // Populate floppy geometries
+            PopulateGeometries();
         }
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -725,6 +736,13 @@ namespace disksrv_client
             if (txtHost.Text.Length == 0)
             {
                 Error("Could not connect - a hostname/IP address must be provided");
+                return;
+            }
+
+            // Make sure we aren't already connected
+            if (state.connected)
+            {
+                Error("Cannot connect to server - already connected to a server");
                 return;
             }
 
@@ -798,15 +816,22 @@ namespace disksrv_client
             // Otherwise, run a command to obtain disk geometry
             if (state.diskno < 0x80)
             {
-                // TODO: Obtain disk geometry from combo box, instead of assuming 3.5" 1.44MB
-                state.diskgeometry = F144_35;
+                // Validate a floppy geometry is selected
+                if (cmbFloppyType.SelectedIndex < 0)
+                {
+                    Error(String.Format("You must select a floppy disk geometry, before attempting to read from FDD{0}", state.diskno));
+                    return;
+                }
 
-                // TODO: Also obtain a maximum buffer size for floppies? For now, we'll set it to (4 * 512) bytes
+                // TODO: Obtain disk geometry from combo box, instead of assuming 3.5" 1.44MB
+                state.diskgeometry = GetSelectedGeometry();
+
                 // The VirtualBox BIOS threw a hissy fit trying to read more than 4 sectors at once - providing invalid information for 8 sectors at once, and straight up failing for 16.
                 // Its unclear whether this is a fault of trying to read that much information at once, a fault of the VirtualBox BIOS, or a fault in Borland C's implementation of biosdisk();
-                state.maxbufoverride = 4 * 512;
+                state.maxbufoverride = (int)AppSettings.global[AppSettings.FLOPPY_MAXSECBUF] * 512;
             } else
             {
+                // Get the disk geometry
                 try
                 {
                     state.diskgeometry = GetDiskGeometry((byte)(state.diskno - 0x80));
@@ -816,6 +841,9 @@ namespace disksrv_client
                     Error(String.Format("Failed to read disk to file, error\n\n{0}", ex.Message));
                     return;
                 }
+
+                // Set maxbufoverride, if present
+                state.maxbufoverride = (int)AppSettings.global[AppSettings.HARDDISK_MAXSECBUF] * 512;
             }
 
             // We are now declaring we're running async as all validations have succeeded
@@ -855,16 +883,23 @@ namespace disksrv_client
             // Otherwise, run a command to obtain disk geometry
             if (state.diskno < 0x80)
             {
-                // TODO: Obtain disk geometry from combo box, instead of assuming 3.5" 1.44MB
-                state.diskgeometry = F144_35;
+                // Validate a floppy geometry is selected
+                if (cmbFloppyType.SelectedIndex < 0)
+                {
+                    Error(String.Format("You must select a floppy disk geometry, before attempting to write to FDD{0}", state.diskno));
+                    return;
+                }
 
-                // TODO: Also obtain a maximum buffer size for floppies? For now, we'll set it to (4 * 512) bytes
+                // TODO: Obtain disk geometry from combo box, instead of assuming 3.5" 1.44MB
+                state.diskgeometry = GetSelectedGeometry();
+
                 // The VirtualBox BIOS threw a hissy fit trying to read more than 4 sectors at once - providing invalid information for 8 sectors at once, and straight up failing for 16.
                 // Its unclear whether this is a fault of trying to read that much information at once, a fault of the VirtualBox BIOS, or a fault in Borland C's implementation of biosdisk();
-                state.maxbufoverride = 4 * 512;
+                state.maxbufoverride = (int)AppSettings.global[AppSettings.FLOPPY_MAXSECBUF] * 512;
             }
             else
             {
+                // Get the disk geometry
                 try
                 {
                     state.diskgeometry = GetDiskGeometry((byte)(state.diskno - 0x80));
@@ -875,6 +910,9 @@ namespace disksrv_client
                     Error(String.Format("Failed to write file to disk, error\n\n{0}", ex.Message));
                     return;
                 }
+
+                // Set maxbufoverride, if present
+                state.maxbufoverride = (int)AppSettings.global[AppSettings.HARDDISK_MAXSECBUF] * 512;
             }
 
             // We are now declaring we're running async as all validations have succeeded
@@ -898,6 +936,47 @@ namespace disksrv_client
             workerWriteDisk.CancelAsync();
         }
 
+        // Automatically attempt to connect, if the user presses enter on the textbox (and isn't already connected)
+        private void txtHost_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (state.connected && e.KeyCode == Keys.Enter)
+            {
+                cmdConnect_Click(sender, new EventArgs());
+            }
+        }
+
+        private void quitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // We do not check if we are connected, or if an async operation is in progress
+            // This is because we set the variables for the async operation, in a location, other than AppSettings
+
+            // Get the result of opening frmPreferences()
+            DialogResult result = (new frmPreferences()).ShowDialog();
+
+            // If the user pressed "Save"
+            if (result == DialogResult.OK)
+            {
+                // Populate floppy geometries again
+                PopulateGeometries();
+            }
+        }
+
+        private void aboutDisksrvClientToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            (new frmAbout()).ShowDialog();
+        }
+
+        private void onlineDocumentationToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start("https://stereorocker.github.io/disksrv/");
+        }
+
         #endregion // UI Event Handlers
+
     }
 }
