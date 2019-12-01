@@ -94,6 +94,7 @@
             <li><a href="#requirements">Requirements</a></li>
             <li><a href="#limitations">Limitations</a></li>
             <li><a href="#usage">Usage</a></li>
+            <li><a href="#portability">Portability</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
@@ -106,10 +107,15 @@
 <li>Network access to the disksrv host.</li>
 </ul>
 <h2 id="limitations">Limitations</h2>
-<p>The client currently only supports connecting to one server at a time.</p>
+<ul>
+<li>The client currently only supports connecting to one server at a time.</li>
+<li>The client will fail to read/write images where the physical disk has bad sectors.</li>
+</ul>
 <h2 id="usage">Usage</h2>
-<p>Extract the client to a directory, somewhere on your filesystem. Run the <code>disksrv-client.exe</code> file, and the GUI will launch.</p>
-<p>First you must connect to your disksrv host, you can specify either an IP address or a hostname.</p></div>
+<p>Extract the <code>client</code> directory from the disksrv release, somewhere on your filesystem. Run the <code>disksrv-client.exe</code> file, and the GUI will launch.</p>
+<p>First you must connect to your disksrv host, you can specify either an IP address or a hostname.</p>
+<h2 id="portability">Portability</h2>
+<p><code>disksrv.client.exe</code> relies on only 1 file, <code>settings.xml</code>. If this file is not found, it will be created automatically upon launch, in the current working directory. (If launched from explorer, or a default shortcut made with explorer, the working directory will be the same directory the file is located in.)</p></div>
         </div>
 
         <footer class="col-md-12">
