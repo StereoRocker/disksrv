@@ -13,3 +13,9 @@ client/obj/
 
 # Ignore client/.vs/
 client/.vs/
+
+# Ignore release/ - the directory I use to stage release ZIP files
+release/
+
+# Ignore .csproj.user files
+*.csproj.user

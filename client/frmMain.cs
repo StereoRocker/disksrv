@@ -523,6 +523,9 @@ namespace disksrv_client
                 // Check if a cancellation is pending
                 if (worker.CancellationPending)
                 {
+                    // Close the file
+                    fs.Close();
+
                     // Set the cancel flag
                     e.Cancel = true;
 
@@ -652,6 +655,19 @@ namespace disksrv_client
                     // If the server returned any data, close the file and throw an exception
                     fs.Close();
                     throw new Exception(String.Format("WriteFast: Server returned incorrect amount of data. Expected {0} got {1}", 0, datalen));
+                }
+
+                // Check if a cancellation is pending
+                if (worker.CancellationPending)
+                {
+                    // Close the file
+                    fs.Close();
+
+                    // Set the cancel flag
+                    e.Cancel = true;
+
+                    // Return from the function so as not to proceed
+                    return;
                 }
 
                 // Calculate progress + report it
