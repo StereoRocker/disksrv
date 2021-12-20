@@ -126,7 +126,11 @@ namespace disksrv_client
             for (int i = 0; i < FDDs; i++)
                 lstServerDisks.Items.Add(String.Format("FDD {0}", i));
             for (int i = 0; i < HDDs; i++)
-                lstServerDisks.Items.Add(String.Format("HDD {0}", i));
+            {
+                chs_t disk = GetDiskGeometry((byte)i);
+
+                lstServerDisks.Items.Add(String.Format("HDD {0}, C: {1}, H: {2}, S: {3}", i, disk.cylinder, disk.head, disk.sector));
+            }
         }
 
         private void PopulateGeometries()
